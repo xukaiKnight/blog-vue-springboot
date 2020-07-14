@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.knight.blog.mapper.CommentMapper">
+    <resultMap id="BaseCommentResultMap" type="com.knight.blog.entity.Comment">
+        <id column="id" property="id" jdbcType="INTEGER"/>
+        <result column="content" property="content" jdbcType="VARCHAR"/>
+        <result column="create_date" property="createDate" jdbcType="TIMESTAMP"/>
+        <result column="article_id" property="articleId" jdbcType="INTEGER"/>
+        <result column="author_id" property="authorId" jdbcType="INTEGER"/>
+        <result column="parent_id" property="parentId" jdbcType="INTEGER"/>
+        <result column="to_uid" property="toUid" jdbcType="INTEGER"/>
+        <result column="level" property="level" jdbcType="VARCHAR"/>
+        <association property="author" javaType="com.knight.blog.entity.User">
+            <id column="a_id" property="id" jdbcType="INTEGER"/>
+            <result column="a_account" property="account" jdbcType="VARCHAR"/>
+            <result column="a_admin" property="isAdmin" jdbcType="BIT"/>
+            <result column="a_avatar" property="avatar" jdbcType="VARCHAR"/>
+            <result column="a_create_date" property="createDate" jdbcType="TIMESTAMP"/>
+            <result column="a_deleted" property="isDeleted" jdbcType="BIT"/>
+            <result column="a_email" property="email" jdbcType="VARCHAR"/>
+            <result column="a_last_login" property="lastLogin" jdbcType="TIMESTAMP"/>
+            <result column="a_mobile_phone_number" property="mobilePhoneNumber" jdbcType="VARCHAR"/>
+            <result column="a_nickname" property="nickName" jdbcType="VARCHAR"/>
+            <result column="a_password" property="password" jdbcType="VARCHAR"/>
+            <result column="a_sale" property="sale" jdbcType="VARCHAR"/>
+            <result column="a_status" property="status" jdbcType="VARCHAR"/>
+        </association>
+        <association property="toUser" javaType="com.knight.blog.entity.User">
+            <id column="t_id" property="id" jdbcType="INTEGER"/>
+            <result column="t_account" property="account" jdbcType="VARCHAR"/>
+            <result column="t_admin" property="isAdmin" jdbcType="BIT"/>
+            <result column="t_avatar" property="avatar" jdbcType="VARCHAR"/>
+            <result column="t_create_date" property="createDate" jdbcType="TIMESTAMP"/>
+            <result column="t_deleted" property="isDeleted" jdbcType="BIT"/>
+            <result column="t_email" property="email" jdbcType="VARCHAR"/>
+            <result column="t_last_login" property="lastLogin" jdbcType="TIMESTAMP"/>
+            <result column="t_mobile_phone_number" property="mobilePhoneNumber" jdbcType="VARCHAR"/>
+            <result column="t_nickname" property="nickName" jdbcType="VARCHAR"/>
+            <result column="t_password" property="password" jdbcType="VARCHAR"/>
+            <result column="t_sale" property="sale" jdbcType="VARCHAR"/>
+            <result column="t_status" property="status" jdbcType="VARCHAR"/>
+        </association>
+    </resultMap>
+    <sql id="Author_Column_List">
+        u.id as a_id, u.account as a_account, u.admin as a_admin, u.avatar as a_avatar, u.create_date as a_create_date,
+        u.deleted as a_deleted, u.email as a_email, u.last_login as a_last_login, u.mobile_phone_number as a_mobile_phone_number,
+        u.nickname as a_nickname, u.password as a_password, u.salt as a_salt, u.status as a_status
+    </sql>
+
+    <sql id="ToUser_Column_List">
+        u2.id as t_id, u2.account as t_account, u2.admin as t_admin, u2.avatar as t_avatar, u2.create_date as t_create_date,
+        u2.deleted as t_deleted, u2.email as t_email, u2.last_login as t_last_login, u2.mobile_phone_number as t_mobile_phone_number,
+        u2.nickname as t_nickname, u2.password as t_password, u2.salt as t_salt, u2.status as t_status
+    </sql>
+
+    <resultMap id="ParentCommentResultMap" type="com.knight.blog.entity.Comment" extends="BaseCommentResultMap">
+        <collection property="children" ofType="com.knight.blog.entity.Comment"
+                    select="com.knight.blog.mapper.CommentMapper.getCommentsByParentId" column="id"/>
+    </resultMap>
+
+<!--    <resultMap id="ChildCommentResultMap" type="com.knight.blog.entity.Comment" extends="BaseCommentResultMap">-->
+<!--        <association property="parent"-->
+<!--                     select="com.knight.blog.mapper.CommentMapper.getParentCommentById" column="parent_id">-->
+<!--        </association>-->
+<!--    </resultMap>-->
+
+<!--    <select id="getAllComments" resultMap="BaseCommentResultMap">-->
+<!--        select c.*,-->
+<!--        <include refid="Author_Column_List"/>-->
+<!--        from me_comment c inner join sys_user u on c.author_id=u.id order by c.create_date-->
+<!--    </select>-->
+
+    <select id="getCommentsByParentId" resultMap="BaseCommentResultMap">
+        select c.*,
+        <include refid="Author_Column_List"/>
+        <if test="to_uid != null">
+            ,<include refid="ToUser_Column_List"/>
+        </if>
+        from me_comment c left join sys_user u on c.author_id=u.id
+        <if test="to_uid != null">
+            left join sys_user u2 on c.to_uid=u2.id
+        </if>
+
+        where c.parent_id=#{pid}
+        order by c.create_date desc
+    </select>
+
+    <select id="getParentCommentsByArticleId" resultMap="ParentCommentResultMap">
+        select c.*,
+        <include refid="Author_Column_List"/>
+        from me_comment c left join sys_user u on c.author_id=u.id
+         where c.level=0 and c.article_id=${id}
+        order by c.create_date desc
+    </select>
+
+<!--    <select id="getCommentsByArticleId" resultMap="BaseCommentResultMap">-->
+<!--        select c.*,-->
+<!--        <include refid="Author_Column_List"/>-->
+<!--        <if test="to_uid != 0">-->
+<!--            ,<include refid="ToUser_Column_List"/>-->
+<!--        </if>-->
+<!--        from me_comment c left join sys_user u on c.author_id=u.id-->
+<!--        <if test="to_uid != 0">-->
+<!--            left join sys_user u2 on c.to_uid=u2.id-->
+<!--        </if>-->
+
+<!--        where c.article_id=#{id}-->
+<!--        order by c.create_date-->
+<!--    </select>-->
+
+    <insert id="saveComment" useGeneratedKeys="true" keyProperty="id" parameterType="com.knight.blog.entity.Comment">
+        insert into me_comment values(#{id},#{content},#{createDate},#{articleId},#{authorId},#{parentId},#{toUid},#{level})
+    </insert>
+
+
+</mapper>

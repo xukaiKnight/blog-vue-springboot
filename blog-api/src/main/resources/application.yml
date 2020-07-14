@@ -1,0 +1,32 @@
+#server:
+#  port: 8081
+#
+#spring:
+#  datasource:
+#    type: com.alibaba.druid.pool.DruidDataSource
+#    url: jdbc:mysql://192.168.136.145:3306/blog?allowMultiQueries=true&useUnicode=true&characterEncoding=UTF-8
+#    username: root
+#    password: 123456
+#    driver-class-name: com.mysql.jdbc.Driver
+#  redis:
+#    port: 6380
+#mybatis:
+#  mapper-locations: mapper/*.xml
+#  type-aliases-package: com.knight.blog.entity
+
+server:
+  port: 8080
+
+spring:
+  datasource:
+    type: com.alibaba.druid.pool.DruidDataSource
+    url: jdbc:mysql://34.92.48.102:3306/blog?allowMultiQueries=true&useUnicode=true&characterEncoding=UTF-8
+    username: root
+    password: 123456
+    driver-class-name: com.mysql.jdbc.Driver
+  redis:
+    port: 6379
+    host: 34.92.48.102
+mybatis:
+  mapper-locations: mapper/*.xml
+  type-aliases-package: com.knight.blog.entity

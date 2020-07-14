@@ -1,0 +1,118 @@
+<template>
+  <div>
+    <el-container>
+
+      <el-main class="me-articles">
+
+        <article-scroll-page></article-scroll-page>
+
+      </el-main>
+
+      <el-aside>
+
+        <card-me class="me-area"></card-me>
+        <card-tag :tags="hotTags"></card-tag>
+
+        <card-article cardHeader="最热文章" :articles="hotArticles"></card-article>
+
+        <card-archive cardHeader="文章归档" :archives="archives"></card-archive>
+
+<!--        <card-article cardHeader="最新文章" :articles="newArticles"></card-article>-->
+
+      </el-aside>
+    </el-container>
+  </div>
+</template>
+
+<script>
+  import CardMe from '@/components/card/CardMe'
+  import CardTag from '@/components/card/CardTag'
+  import CardArticle from '@/components/card/CardArticle'
+  import CardArchive from '@/components/card/CardArchive'
+  import ArticleScrollPage from '@/views/common/ArticleScrollPage'
+  import {getHotTags} from '@/api/tag'
+  import {getHotArtices,listArchives} from '@/api/article'
+
+    export default {
+      name: "index",
+
+      created() {
+
+        this.getHotTags()
+        this.getHotArtices()
+        this.listArchives()
+      },
+      data() {
+        return {
+          hotTags: [],
+          hotArticles: [],
+          archives: [],
+        }
+      },
+      methods: {
+        getHotTags() {
+          let that = this
+          getHotTags().then(data => {
+            that.hotTags = data.data
+          }).catch(error => {
+            if (error !== 'error') {
+              that.$message({type: 'error', message: '最热标签加载失败!', showClose: true})
+            }
+          })
+        },
+        getHotArtices() {
+          let that = this
+          getHotArtices().then(data => {
+            that.hotArticles = data.data
+          }).catch(error => {
+            if (error !== 'error') {
+              that.$message({type: 'error', message: '最热文章加载失败!', showClose: true})
+            }
+
+          })
+        },
+        listArchives() {
+
+          let that = this
+          listArchives().then((data => {
+            that.archives = data.data
+          })).catch(error => {
+            if (error !== 'error') {
+              that.$message({type: 'error', message: '文章归档加载失败!', showClose: true})
+            }
+          })
+        }
+      },
+      components: {
+        ArticleScrollPage,
+        CardMe,
+        CardTag,
+        CardArticle,
+        CardArchive,
+      }
+    }
+</script>
+
+<style scoped>
+  .el-container {
+    width: 960px;
+  }
+
+  .el-aside {
+    margin-left: 20px;
+    width: 260px;
+  }
+
+  .el-main {
+    padding: 0px;
+    line-height: 16px;
+  }
+
+  .el-card {
+    border-radius: 0;
+  }
+
+  .el-card:not(:first-child) {
+    margin-top: 20px;
+  }
+</style>

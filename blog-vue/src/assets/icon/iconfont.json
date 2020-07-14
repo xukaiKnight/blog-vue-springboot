@@ -1,0 +1,23 @@
+{
+  "id": "1930878",
+  "name": "blog",
+  "font_family": "icon-font",
+  "css_prefix_text": "blog",
+  "description": "for my blog",
+  "glyphs": [
+    {
+      "icon_id": "1877977",
+      "name": "工作",
+      "font_class": "web-icon-",
+      "unicode": "e6cc",
+      "unicode_decimal": 59084
+    },
+    {
+      "icon_id": "400807",
+      "name": "github3",
+      "font_class": "github3",
+      "unicode": "e743",
+      "unicode_decimal": 59203
+    }
+  ]
+}

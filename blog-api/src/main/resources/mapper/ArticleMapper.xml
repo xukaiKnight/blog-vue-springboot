@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.knight.blog.mapper.ArticleMapper">
+
+    <resultMap id="ArticleResultMap" type="com.knight.blog.entity.Article">
+        <id column="id" jdbcType="INTEGER" property="id"/>
+        <result column="comment_counts" jdbcType="INTEGER" property="commentCounts"/>
+        <result column="create_date" jdbcType="TIMESTAMP" property="createDate"/>
+        <result column="summary" jdbcType="VARCHAR" property="summary"/>
+        <result column="title" jdbcType="VARCHAR" property="title"/>
+        <result column="view_counts" jdbcType="INTEGER" property="viewCounts"/>
+        <result column="weight" jdbcType="INTEGER" property="weight"/>
+        <result column="author_id" jdbcType="INTEGER" property="authorId"/>
+        <result column="body_id" jdbcType="INTEGER" property="bodyId"/>
+        <result column="category_id" jdbcType="INTEGER" property="categoryId"/>
+
+        <association property="author" javaType="com.knight.blog.entity.User">
+            <id column="a_id" property="id" jdbcType="INTEGER"/>
+            <result column="a_account" property="account" jdbcType="VARCHAR"/>
+            <result column="a_admin" property="isAdmin" jdbcType="BIT"/>
+            <result column="a_avatar" property="avatar" jdbcType="VARCHAR"/>
+            <result column="a_create_date" property="createDate" jdbcType="TIMESTAMP"/>
+            <result column="a_deleted" property="isDeleted" jdbcType="BIT"/>
+            <result column="a_email" property="email" jdbcType="VARCHAR"/>
+            <result column="a_last_login" property="lastLogin" jdbcType="TIMESTAMP"/>
+            <result column="a_mobile_phone_number" property="mobilePhoneNumber" jdbcType="VARCHAR"/>
+            <result column="a_nickname" property="nickName" jdbcType="VARCHAR"/>
+            <result column="a_password" property="password" jdbcType="VARCHAR"/>
+            <result column="a_sale" property="sale" jdbcType="VARCHAR"/>
+            <result column="a_status" property="status" jdbcType="VARCHAR"/>
+        </association>
+
+        <association property="body" javaType="com.knight.blog.entity.ArticleBody">
+            <id column="b_id" property="id" jdbcType="INTEGER"/>
+            <result column="b_content" property="content" jdbcType="VARCHAR"/>
+            <result column="b_content_html" property="contentHtml" jdbcType="VARCHAR"/>
+        </association>
+
+        <association property="category" javaType="com.knight.blog.entity.Category">
+            <id column="ca_id" property="id" jdbcType="INTEGER"/>
+            <result column="ca_avatar" property="avatar" jdbcType="VARCHAR"/>
+            <result column="ca_categoryname" property="categoryName" jdbcType="VARCHAR"/>
+            <result column="ca_description" property="description" jdbcType="VARCHAR"/>
+        </association>
+        
+        <collection property="tagList" ofType="com.knight.blog.entity.Tag"
+        select="com.knight.blog.mapper.TagMapper.getTagListByArticleId" column="id"/>
+
+<!--        <collection property="commentList" ofType="com.knight.blog.entity.Comment"-->
+<!--                    select="com.knight.blog.mapper.CommentMapper.getCommentsByArticleId" column="id"/>-->
+
+    </resultMap>
+
+    <sql id="Author_Column_List">
+        u.id as a_id, u.account as a_account, u.admin as a_admin, u.avatar as a_avatar, u.create_date as a_create_date,
+        u.deleted as a_deleted, u.email as a_email, u.last_login as a_last_login, u.mobile_phone_number as a_mobile_phone_number,
+        u.nickname as a_nickname, u.password as a_password, u.salt as a_salt, u.status as a_status
+    </sql>
+    
+    <sql id="ArticleBody_Column_List">
+        b.id as b_id, b.content as b_content, b.content_html as b_content_html
+    </sql>
+
+    <sql id="Category_Column_List">
+        ca.id as ca_id, ca.avatar as ca_avatar, ca.categoryname as ca_categoryname, ca.description as ca_description
+    </sql>
+
+
+
+    <select id="getAllArticles" resultType="com.knight.blog.entity.Article" resultMap="ArticleResultMap">
+        select a.*,
+        <include refid="Author_Column_List"/>,
+        <include refid="ArticleBody_Column_List"/>,
+        <include refid="Category_Column_List"/>
+        from me_article a
+        left join sys_user u on a.author_id=u.id
+        left join me_article_body b on a.body_id=b.id
+        left join me_category ca on a.category_id=ca.id
+
+    </select>
+
+    <select id="getArticles" resultType="com.knight.blog.entity.Article" resultMap="ArticleResultMap">
+        select a.*,
+        <include refid="Author_Column_List"/>,
+        <include refid="ArticleBody_Column_List"/>,
+        <include refid="Category_Column_List"/>
+        from me_article a
+        inner join sys_user u on a.author_id=u.id
+        inner join me_article_body b on a.body_id=b.id
+        inner join me_category ca on a.category_id=ca.id
+        where 1=1
+        <if test="av.categoryId != null">
+            and a.category_id=#{av.categoryId}
+        </if>
+        <if test="av.year != null">
+            and YEAR(a.create_date)=#{av.year}
+        </if>
+        <if test="av.month != null">
+            and MONTH(a.create_date)=#{av.month}
+        </if>
+        <if test="pv.name != null">
+            order by ${pv.name}
+        </if>
+        <if test="pv.sort != null">
+            ${pv.sort}
+        </if>
+        limit ${pv.pageSize*(pv.pageNumber-1)},${pv.pageSize}
+    </select>
+
+    <select id="getArticlesOrderByViewsAndLimit" resultType="com.knight.blog.entity.Article">
+        select * from me_article order by view_counts desc limit ${limit}
+    </select>
+
+    <select id="listArchives" resultType="com.knight.blog.vo.ArticleVo">
+        select year(create_date) as year,month(create_date) as month,count(*) as count from me_article group by year(create_date),month(create_date)
+    </select>
+
+    <select id="getArticleAndAddViews" resultType="com.knight.blog.entity.Article" resultMap="ArticleResultMap">
+        select a.*,
+        <include refid="Author_Column_List"/>,
+        <include refid="ArticleBody_Column_List"/>,
+        <include refid="Category_Column_List"/>
+        from me_article a
+        inner join sys_user u on a.author_id=u.id
+        inner join me_article_body b on a.body_id=b.id
+        inner join me_category ca on a.category_id=ca.id
+        where a.id=#{id}
+    </select>
+
+    <select id="getBaseArticleById" resultType="com.knight.blog.entity.Article" resultMap="ArticleResultMap">
+        select a.*,
+        <include refid="Author_Column_List"/>,
+        <include refid="ArticleBody_Column_List"/>,
+        <include refid="Category_Column_List"/>
+        from me_article a
+        inner join sys_user u on a.author_id=u.id
+        inner join me_article_body b on a.body_id=b.id
+        inner join me_category ca on a.category_id=ca.id
+        where a.id=#{id}
+    </select>
+
+    <update id="updateCount" parameterType="com.knight.blog.entity.Article">
+        update me_article
+        set comment_counts=#{count}
+        where id=#{id}
+    </update>
+
+    <insert id="saveArticle" parameterType="com.knight.blog.entity.Article" useGeneratedKeys="true" keyProperty="id">
+        insert into me_article values(null,#{commentCounts},#{createDate},#{summary},#{title},#{viewCounts},#{weight},#{authorId},#{bodyId},#{categoryId})
+    </insert>
+    
+    <update id="updateArticle" parameterType="com.knight.blog.entity.Article">
+        update me_article
+        set summary=#{summary}, title=#{title}, category_id=#{categoryId}
+        where id=#{id}
+    </update>
+
+    <insert id="saveArticleBody"  useGeneratedKeys="true" keyProperty="id" keyColumn="id" parameterType="com.knight.blog.entity.ArticleBody">
+        insert into me_article_body(content,content_html) values(#{content},#{contentHtml})
+    </insert>
+
+    <update id="updateArticleBody" parameterType="com.knight.blog.entity.ArticleBody">
+        update me_article_body
+        set content=#{content}, content_html=#{contentHtml}
+        where id=#{id}
+    </update>
+</mapper>
