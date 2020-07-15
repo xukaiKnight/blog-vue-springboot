@@ -1,5 +1,4 @@
 该项目为个人练习项目
-只要技术为
 前端: vue.js,主要使用的组件有:vue-router,element-ui,vuex,axios
 后端: springboot,mybatis,druid,shiro
 数据库: mysql,redis
